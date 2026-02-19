@@ -13,14 +13,15 @@ csvpath = 'litclock_annotated_br2.csv'      # csv file to read quotes from
 imgdir = 'images/'                          # save location for images
 imgformat = 'png'                           # format. jpeg is faster but lossy
 include_metadata = True                     # whether to include author/title
-imgsize = (600,800)                         # width/height of image
+# Kindle Paperwhite 2 (2013) native resolution: 758×1024 @ 212 PPI
+imgsize = (758, 1024)                       # width/height of image (full screen)
 color_bg = 255                              # white. color for the background
 color_norm = 125                            # grey. color for normal text
 color_high = 0                              # black. color for highlighted text
 fntname_norm = 'bookerly.ttf'               # font for normal text
 fntname_high = 'bookerlybold.ttf'           # font for highlighted text
 fntname_mdata = 'baskervilleboldbt.ttf'     # font for the author/title
-fntsize_mdata = 25                          # fontsize for the author/title
+fntsize_mdata = 32                          # fontsize for the author/title (scaled for 758×1024)
 # don't touch
 imgnumber = 0
 previoustime = ''
@@ -30,13 +31,14 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                author:str, title:str):
     global imgnumber, previoustime
     savepath = imgdir
-    quoteheight = 720
-    quotelength = 570
+    # layout scaled for Kindle Paperwhite 2 (758×1024); was 600×800
+    quoteheight = 922
+    quotelength = 720
     quotestart_y = 0
-    quotestart_x = 20
-    mdatalength = 450
-    mdatastart_y = 785
-    mdatastart_x = 585
+    quotestart_x = 25
+    mdatalength = 569
+    mdatastart_y = 1005
+    mdatastart_x = 739
 
     # create the object. mode 'L' restricts to 8bit greyscale
     paintedworld = Image.new(mode='L', size=(imgsize), color=color_bg)
