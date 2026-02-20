@@ -18,7 +18,7 @@ This repository is a fork of [elegantalchemist/literaryclock](https://github.com
 ## Build Overview
 The overview is fairly simple. Jailbreak the Kindle, install USBNetwork (and optionally Launchpad), install Python. Copy the timelit folder (and images) to the Kindle, configure timezone, then either use the **original** method (Launchpad + system crontab) or this fork’s **alternative** method (no Launchpad required, cron via `crond` and a writable cron dir under `/mnt/us/timelit`).
 
-Start and stop the clock by running `./startstopClock.sh` (or via a KUAL button if you have Launchpad). Detailed timezone and stop instructions are in `timelit/readme.md`.
+Start and stop the clock by running `./startstopClock.sh` (or via a KUAL menu item or Launchpad key combo). Detailed timezone and stop instructions are in `timelit/readme.md`.
 
 * **WARNING** None of this is what the Kindle is designed to do and it's not hard to get it wrong and brick the Kindle. Do not proceed unless you are comfortable with this risk.
 
@@ -45,6 +45,7 @@ Start and stop the clock by running `./startstopClock.sh` (or via a KUAL button 
 * **Timezone config:** In `timelit/conf/`, create or rename a config file to your WiFi MAC address (lowercase, hyphens instead of colons). Get it with `cat /sys/class/net/wlan0/address` on the Kindle (e.g. `74:75:48:a7:77:5b` → `74-75-48-a7-77-5b.conf`). This fork’s `timelit.sh` also looks for `<mac-with-colons>.conf` and `default.conf`. Edit the file to set your timezone, e.g. `export TZ='EST5EDT'`. See `timelit/readme.md` and `timelit/conf/timezones list` for examples.
 * Copy the utils folder to `/mnt/us/` if you use the original cron/clean-clock method below.
 * If you use **Launchpad**, copy `startClock.ini` to `/mnt/us/launchpad/` (key combo for SSH and clock). Restart the Kindle so key combos are active.
+* If you use **KUAL**, copy the `extensions/literaryclock` folder to `/mnt/us/extensions/` so you have `/mnt/us/extensions/literaryclock/menu.json`. Restart KUAL or reboot your Kindle for the menu to appear. See `extensions/literaryclock/README.md` for details on checking your KUAL version.
 * Activate SSH over Wi‑Fi by editing the `config` file in `/mnt/us/usbnet/etc` and set “allow ssh over wifi” to true.
 * Make the scripts executable (e.g. over SSH): `chmod +x /mnt/us/timelit/timelit.sh /mnt/us/timelit/startstopClock.sh`
 

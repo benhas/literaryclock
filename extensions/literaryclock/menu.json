@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "name": "Literary Clock",
+      "priority": 0,
+      "items": [
+        {
+          "name": "Toggle Clock",
+          "priority": 1,
+          "action": "/mnt/us/timelit/startstopClock.sh",
+          "status": false,
+          "exitmenu": true,
+          "internal": "Toggle the literary clock on or off"
+        }
+      ]
+    }
+  ]
+}
