@@ -16,3 +16,7 @@
 - **Image generation script**
   - Inspected `quote to image/quote_to_image.py` (uses Pillow to render quotes to `images/quote_HHMM_N.png`).
   - Attempted to run `python3 quote_to_image.py` inside `quote to image/`, but the environment blocked spawning the command; you’ll need to run it locally in your terminal to regenerate images (including the new minutes and `88:88` battery quotes).
+
+- **Kindle showsource / metadata images**
+  - Investigated the runtime message `No image to show: ThisMinuteImage='/mnt/us/timelit/images/metadata/quote_2114_0_credits.png'` and traced it to `timelit/timelit.sh`, which rewrites the chosen image path to `images/metadata/*_credits.png` when a `showsource` flag file exists.
+  - Confirmed that removing the `/mnt/us/timelit/showsource` file on the Kindle makes the clock use the normal `images/quote_HHMM_N.png` images again (no metadata/credits variant required), which resolved the “No image to show” issue.
