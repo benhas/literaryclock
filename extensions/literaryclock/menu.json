@@ -9,8 +9,7 @@
           "priority": 1,
           "action": "/mnt/us/timelit/startstopClock.sh",
           "status": false,
-          "exitmenu": true,
-          "internal": "Toggle the literary clock on or off"
+          "internal": "status Toggle the literary clock on or off"
         }
       ]
     }

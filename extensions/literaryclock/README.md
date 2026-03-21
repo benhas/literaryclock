@@ -4,7 +4,9 @@ This KUAL extension adds menu items to control the literary clock.
 
 ## Installation
 
-1. Copy the `literaryclock` folder to your Kindle's `/mnt/us/extensions/` directory
+KUAL2 discovers extensions by **`config.xml`** in each extension folder (then loads `menu.json` from it). This folder must contain **both** `config.xml` and `menu.json`—same pattern as USBNetwork and “Rename OTA binaries”.
+
+1. Copy the whole `literaryclock` folder (including `config.xml` and `menu.json`) to your Kindle's `/mnt/us/extensions/` directory
 2. Ensure the `startstopClock.sh` script is executable:
    ```bash
    chmod +x /mnt/us/timelit/startstopClock.sh
