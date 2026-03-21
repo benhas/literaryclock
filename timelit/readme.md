@@ -32,6 +32,30 @@ If the clock display doesn’t change: ensure you started it with `startstopCloc
 
 Run `./startstopClock.sh` again to stop the clock. On Kindle models without a framework init script, the last quote image will remain visible (the screen is not cleared). **Press the power button once** (sleep then wake) to return to the normal Kindle UI when you're ready.
 
+## Screensaver while the clock runs
+
+`startstopClock.sh` toggles the system screensaver behaviour via **lipc** when `lipc-set-prop` is available:
+
+- **Clock start:** `lipc-set-prop com.lab126.powerd preventScreenSaver 1` — idle screensaver should not kick in while the clock is running (especially when `powerd` is still running because there is no `/etc/init.d/powerd` stop on your model).
+- **Clock stop:** `preventScreenSaver 0` — normal idle/screensaver timeout returns.
+
+On models that stop `powerd` via `/etc/init.d/powerd stop` while the clock runs, the lipc calls may no-op or fail harmlessly (`2>/dev/null`); stopping the clock still restores behaviour when `powerd` is started again.
+
+To check the current value: `lipc-get-prop com.lab126.powerd preventScreenSaver` (`1` = prevent screensaver, `0` = allow).
+
+## Battery low indication (quote_8888)
+
+While the clock is running, `timelit.sh` does an **hourly** check of Kindle battery capacity.
+
+- If battery is **< 20%**, then during that period:
+  - on **every 10-minute boundary** (minutes `00,10,20,30,40,50`), the clock switches to images whose filenames start with `quote_8888` (e.g. `quote_8888_0.png`, `quote_8888_1.png`, ...).
+  - other minutes continue to use the normal time-based quote images.
+
+Internals (files created under `/mnt/us/timelit/`):
+- `battery_last_hour`
+- `battery_low`
+- `battery_percent`
+
 ## Setting date and time to your local time
 
 The clock picks an image by **minute of the day** (e.g. 14:30 → `quote_1430_*.png`). If you see “no images found”, the minute the script is using doesn’t match your images. Fix the Kindle’s time and/or timezone.

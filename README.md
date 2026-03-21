@@ -102,7 +102,7 @@ This fork ([elegantalchemist/literaryclock](https://github.com/elegantalchemist/
 | **Newer Kindles** | Assumes `/etc/init.d/powerd` and `/etc/init.d/framework` exist. | `startstopClock.sh` checks for these; if absent, restores UI via `lipc-set-prop` and full eips refresh to reduce ghosting. |
 | **Config loading** | Single MAC-named conf file. | `timelit.sh` tries, in order: `<mac-with-dashes>.conf`, `<mac-with-colons>.conf`, `default.conf`, and logs what was loaded. |
 | **Missing minute** | No image for current minute could cause script to exit or show nothing. | Fallback to placeholder images (`quote_9999_*.png`) when no image exists for the current minute; CSV includes placeholder quotes. |
-| **Screensaver** | Stopping powerd (when present) prevents screensaver. | Same; plus documented: `lipc-set-prop com.lab126.powerd preventScreenSaver 1` to keep screen on when powerd is running. |
+| **Screensaver** | Stopping powerd (when present) prevents screensaver. | `startstopClock.sh` sets `lipc-set-prop com.lab126.powerd preventScreenSaver` to **1** when the clock starts and **0** when it stops (when `lipc-set-prop` exists), so the screen stays on during the clock even if powerd is still running. |
 | **Docs** | Inline in main README. | Extra `timelit/readme.md` for timezone, device time, stopping, and power-button workaround. |
 
 ## Uninstall

@@ -47,11 +47,64 @@ fi
 
 # Find the current minute of the day
 MinuteOTheDay="$(env TZ="$TZ" date -R +"%H%M")";
+HourOfDay="$(env TZ="$TZ" date -R +"%H")";
+MinuteOfHour="$(env TZ="$TZ" date -R +"%M")";
 
 # ALTERNATIVE TIME KEEPING - comment out the one above and uncomment this one to simply pull the 
 # internal Kindle time (Settings -> menu -> device time) for your time if you can't figure
 # out the correct timezone coding
 # MinuteOTheDay="$(date -R +"%H%M")";
+
+# Battery / low-energy mode:
+# - check battery capacity once per hour
+# - if battery < 20%, prefer battery images (quote_8888_*) every 10 minutes
+BATTERY_LAST_HOUR_FILE="$BASEDIR/battery_last_hour"
+BATTERY_LOW_FLAG_FILE="$BASEDIR/battery_low"
+BATTERY_PERCENT_FILE="$BASEDIR/battery_percent"
+
+low_battery=0
+[ -f "$BATTERY_LOW_FLAG_FILE" ] && low_battery="$(cat "$BATTERY_LOW_FLAG_FILE" 2>/dev/null | tr -cd '0-9' || echo 0)"
+
+last_hour="$(cat "$BATTERY_LAST_HOUR_FILE" 2>/dev/null | tr -cd '0-9' || echo '')"
+if [ "$HourOfDay" != "$last_hour" ]; then
+	# Probe capacity from common sysfs locations.
+	# (Paperwhite-ish devices vary by model/kernel; scan any */capacity entry.)
+	battery_cap=""
+	for cap_file in /sys/class/power_supply/*/capacity; do
+		if [ -f "$cap_file" ]; then
+			battery_cap="$(cat "$cap_file" 2>/dev/null | tr -cd '0-9')"
+			[ -n "$battery_cap" ] && break
+		fi
+	done
+
+	if [ -n "$battery_cap" ]; then
+		echo "$battery_cap" > "$BATTERY_PERCENT_FILE" 2>/dev/null || true
+		if [ "$battery_cap" -lt 20 ]; then
+			low_battery=1
+		else
+			low_battery=0
+		fi
+		echo "$low_battery" > "$BATTERY_LOW_FLAG_FILE" 2>/dev/null || true
+		echo "timelit: battery check hour=$HourOfDay capacity=${battery_cap}% low=$low_battery"
+	else
+		echo "timelit: battery check hour=$HourOfDay could not read capacity"
+	fi
+	# Always mark this hour as "checked" to avoid re-probing every minute.
+	echo "$HourOfDay" > "$BATTERY_LAST_HOUR_FILE" 2>/dev/null || true
+fi
+
+# If we're in low-battery mode and we're on a 10-minute boundary, and battery
+# images exist, switch MinuteOTheDay to 8888 so the next selection uses quote_8888_*.
+if [ "$low_battery" -eq 1 ]; then
+	mod10="$(expr "$MinuteOfHour" % 10 2>/dev/null || echo 1)"
+	if [ "$mod10" -eq 0 ]; then
+		lines_bat="$(find "$BASEDIR/images/quote_8888"* 2>/dev/null | wc -l | tr -cd '0-9')"
+		if [ "$lines_bat" -gt 0 ]; then
+			MinuteOTheDay="8888"
+			echo "timelit: low battery active; showing quote_8888_* for minute $HourOfDay:$MinuteOfHour"
+		fi
+	fi
+fi
 
 # Check if there is at least one image for this minute
 lines="$(find "$BASEDIR/images/quote_$MinuteOTheDay"* 2>/dev/null | wc -l)"
