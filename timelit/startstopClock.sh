@@ -12,6 +12,12 @@ if [ $clockrunning -eq 0 ]; then
 	# Stop power management and framework (if available on this Kindle model)
 	[ -f /etc/init.d/powerd ] && /etc/init.d/powerd stop
 	[ -f /etc/init.d/framework ] && /etc/init.d/framework stop
+
+	# When powerd is still running (no init script, or other setups), keep the clock visible:
+	# 1 = do not start screensaver on idle; restored to 0 when the clock stops.
+	if command -v lipc-set-prop >/dev/null 2>&1; then
+		lipc-set-prop com.lab126.powerd preventScreenSaver 1 2>/dev/null || true
+	fi
 	
 	eips -c  # clear display
 	#echo "Clock is not ticking. Lets wind it."
@@ -44,7 +50,7 @@ else
 		eips -c  # clear display
 		/etc/init.d/framework start
 		[ -f /etc/init.d/powerd ] && /etc/init.d/powerd start
-	else
+		else
 		# No framework init script: try to bring Home UI back.
 		# (Some Kindle models don't have /etc/init.d/framework but still have appmgrd.)
 		# Force a full refresh/clear first to avoid partial-refresh ghosting.
@@ -54,6 +60,11 @@ else
 			lipc-set-prop com.lab126.appmgrd start app://com.lab126.booklet.home 2>/dev/null || true
 		fi
 		:
+	fi
+
+	# Re-enable normal screensaver / idle behaviour when leaving clock mode
+	if command -v lipc-set-prop >/dev/null 2>&1; then
+		lipc-set-prop com.lab126.powerd preventScreenSaver 0 2>/dev/null || true
 	fi
 
 fi
