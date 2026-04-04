@@ -120,8 +120,15 @@ fi
 echo "$lines files found for '$MinuteOTheDay'"
 
 
-# Randomly pick a png file for that minute (since we have multiple for some minutes)
-ThisMinuteImage=$(find "$BASEDIR/images/quote_$MinuteOTheDay"* 2>/dev/null | python3 -c "import sys; import random; print(''.join(random.sample(sys.stdin.readlines(), 1)).rstrip())")
+# Randomly pick a png file for that minute (since we have multiple for some minutes).
+# Prefer python3 when present; otherwise awk (BusyBox) so Kindles without Python still work.
+if [ -x /usr/bin/python3 ] || [ -x /mnt/us/python/bin/python3 ]; then
+	PY3=/usr/bin/python3
+	[ -x "$PY3" ] || PY3=/mnt/us/python/bin/python3
+	ThisMinuteImage=$(find "$BASEDIR/images/quote_$MinuteOTheDay"* 2>/dev/null | "$PY3" -c "import sys; import random; print(''.join(random.sample(sys.stdin.readlines(), 1)).rstrip())")
+else
+	ThisMinuteImage=$(find "$BASEDIR/images/quote_$MinuteOTheDay"* 2>/dev/null | awk 'BEGIN{srand()} {a[NR]=$0} END{if(NR>0) print a[int(rand()*NR)+1]}')
+fi
 
 echo "$ThisMinuteImage" > "$BASEDIR/clockisticking"
 

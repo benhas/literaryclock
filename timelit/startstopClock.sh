@@ -35,7 +35,9 @@ if [ $clockrunning -eq 0 ]; then
 		echo '* * * * * /mnt/us/timelit/timelit.sh >>/mnt/us/timelit/logs/timelit-cron.log 2>&1' > "$BASEDIR/cron/root"
 	fi
 	killall crond 2>/dev/null || true
-	crond -b -c "$BASEDIR/cron" -L "$BASEDIR/logs/crond.log" 2>/dev/null || true
+	# BusyBox on some Kindles (e.g. older firmware) does not support -L; crond exits and no updates run.
+	crond -b -c "$BASEDIR/cron" -L "$BASEDIR/logs/crond.log" 2>/dev/null || \
+		crond -b -c "$BASEDIR/cron" 2>/dev/null || true
 
 else
 

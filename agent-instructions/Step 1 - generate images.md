@@ -60,7 +60,8 @@ If any font or the CSV is missing, report it and do not run the script until the
 
 Edit `quote to image/quote_to_image.py` only if the user requests:
 
-- **No author/title on images:** set `include_metadata = False` (line 17).
+- **Target device resolution:** set `DISPLAY_PROFILE = 'kindle4'` (600×800, Kindle 4 non-touch) or `'paperwhite2'` (758×1024). See `agent-instructions/kindle-4-literary-clock.md` for Kindle 4 deployment.
+- **No author/title on images:** set `include_metadata = False` (see `include_metadata` in the script options).
 - **Different CSV:** set `csvpath` (line 13) to the filename in the same folder.
 - **Different fonts:** set `fntname_norm`, `fntname_high`, `fntname_mdata` (lines 21–23) and ensure the corresponding `.ttf` files are in `quote to image/`.
 - **Limit count for testing:** pass a number as the first argument when running the script (e.g. `python3 quote_to_image.py 5`).

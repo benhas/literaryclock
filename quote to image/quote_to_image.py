@@ -13,15 +13,50 @@ csvpath = 'litclock_annotated_br2.csv'      # csv file to read quotes from
 imgdir = 'images/'                          # save location for images
 imgformat = 'png'                           # format. jpeg is faster but lossy
 include_metadata = True                     # whether to include author/title
-# Kindle Paperwhite 2 (2013) native resolution: 758×1024 @ 212 PPI
-imgsize = (758, 1024)                       # width/height of image (full screen)
+# Panel size for full-screen PNGs. Match your device (firmware build does not change this).
+# - kindle4:      600×800 — Kindle 4 non-touch (serial prefixes B00E silver, B023 / 9023 black, …)
+# - paperwhite2: 758×1024 — Kindle Paperwhite 2 (2013), serial prefixes e.g. B0D4 / 90D4
+DISPLAY_PROFILE = 'kindle4'             # set to 'kindle4' for K4 / serial 9023…
+_PROFILES = {
+    'paperwhite2': {
+        'imgsize': (758, 1024),
+        'fntsize_mdata': 32,
+        'layout': {
+            'quoteheight': 922,
+            'quotelength': 720,
+            'quotestart_y': 0,
+            'quotestart_x': 25,
+            'mdatalength': 569,
+            'mdatastart_y': 1005,
+            'mdatastart_x': 739,
+        },
+    },
+    'kindle4': {
+        'imgsize': (600, 800),
+        'fntsize_mdata': 25,
+        'layout': {
+            'quoteheight': 720,
+            'quotelength': 570,
+            'quotestart_y': 0,
+            'quotestart_x': 20,
+            'mdatalength': 450,
+            'mdatastart_y': 785,
+            'mdatastart_x': 585,
+        },
+    },
+}
+_p = _PROFILES.get(DISPLAY_PROFILE)
+if _p is None:
+    exit(f"Unknown DISPLAY_PROFILE={DISPLAY_PROFILE!r}; use {sorted(_PROFILES)!r}")
+imgsize = _p['imgsize']
+fntsize_mdata = _p['fntsize_mdata']
+LAYOUT = _p['layout']
 color_bg = 255                              # white. color for the background
 color_norm = 125                            # grey. color for normal text
 color_high = 0                              # black. color for highlighted text
 fntname_norm = 'bookerly.ttf'               # font for normal text
 fntname_high = 'bookerlybold.ttf'           # font for highlighted text
 fntname_mdata = 'baskervilleboldbt.ttf'     # font for the author/title
-fntsize_mdata = 32                          # fontsize for the author/title (scaled for 758×1024)
 # don't touch
 imgnumber = 0
 previoustime = ''
@@ -31,14 +66,13 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                author:str, title:str):
     global imgnumber, previoustime
     savepath = imgdir
-    # layout scaled for Kindle Paperwhite 2 (758×1024); was 600×800
-    quoteheight = 922
-    quotelength = 720
-    quotestart_y = 0
-    quotestart_x = 25
-    mdatalength = 569
-    mdatastart_y = 1005
-    mdatastart_x = 739
+    quoteheight = LAYOUT['quoteheight']
+    quotelength = LAYOUT['quotelength']
+    quotestart_y = LAYOUT['quotestart_y']
+    quotestart_x = LAYOUT['quotestart_x']
+    mdatalength = LAYOUT['mdatalength']
+    mdatastart_y = LAYOUT['mdatastart_y']
+    mdatastart_x = LAYOUT['mdatastart_x']
 
     # create the object. mode 'L' restricts to 8bit greyscale
     paintedworld = Image.new(mode='L', size=(imgsize), color=color_bg)

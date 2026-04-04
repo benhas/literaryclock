@@ -68,4 +68,7 @@ env/
 
 /quote to image/images/*
 /quote to image/images-backup/*
+/quote to image/images-nometadata/*
+/quote to image/images-kindle-touch/*
+
 /timelit/images/*

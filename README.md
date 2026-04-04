@@ -12,18 +12,20 @@ This repository is a fork of [elegantalchemist/literaryclock](https://github.com
 </p>
 
 ## Materials
-* **Kindle** — Originally developed for Kindle 3 Keyboard; this fork has been tested on newer models (e.g. without `/etc/init.d/framework`). Scripts use `python3` and avoid reliance on Launchpad for start/stop.
+* **Kindle** — Originally developed for Kindle 3 Keyboard; this fork has been tested on newer models (e.g. without `/etc/init.d/framework`) and on **Kindle 4 non-touch** (**600×800**). Start/stop uses **`./startstopClock.sh`** (SSH, KUAL, etc.) without requiring Launchpad. On the Kindle, **`timelit.sh` prefers `python3` if installed** and otherwise uses **`awk`** to pick a random image—**Python on the device is optional** for running the clock (Python on a computer is still required to generate PNGs with `quote_to_image.py`).
 * **Computer connection** for use with SSH and transferring files
 
+**Kindle 4 quick path:** Generate images with **`DISPLAY_PROFILE = 'kindle4'`** in `quote to image/quote_to_image.py`, then follow **`agent-instructions/kindle-4-literary-clock.md`**.
+
 ## Build Overview
-The overview is fairly simple. Jailbreak the Kindle, install USBNetwork (and optionally Launchpad), install Python. Copy the timelit folder (and images) to the Kindle, configure timezone, then either use the **original** method (Launchpad + system crontab) or this fork’s **alternative** method (no Launchpad required, cron via `crond` and a writable cron dir under `/mnt/us/timelit`).
+The overview is fairly simple. Jailbreak the Kindle, install USBNetwork (and optionally Launchpad). **Installing Python on the Kindle is optional** for this fork’s `timelit.sh` (only image generation on your PC needs Python). Copy the `timelit` folder (and images sized for your screen—see **Step 1**) to the Kindle, configure timezone, then either use the **original** method (Launchpad + system crontab) or this fork’s **alternative** method (no Launchpad required—`startstopClock.sh` starts **`crond`** with a crontab under `/mnt/us/timelit/cron`).
 
 Start and stop the clock by running `./startstopClock.sh` (or via a KUAL menu item or Launchpad key combo). Detailed timezone and stop instructions are in `timelit/readme.md`.
 
 * **WARNING** None of this is what the Kindle is designed to do and it's not hard to get it wrong and brick the Kindle. Do not proceed unless you are comfortable with this risk.
 
 ## **Step 1 - Make Some Images**
-* Run the `quote_to_image.py` script in the `quote to image/` folder to generate your images in the `quote to image/images/` folder. By default it reads from `litclock_annotated_br2.csv` in the same folder. There are various things you can do at this point - change fonts, link the files in different ways, etc.
+* Run the `quote_to_image.py` script in the `quote to image/` folder to generate your images in the `quote to image/images/` folder. By default it reads from `litclock_annotated_br2.csv` in the same folder. Set **`DISPLAY_PROFILE`** near the top of `quote_to_image.py`: **`paperwhite2`** (758×1024, Kindle Paperwhite 2 class) or **`kindle4`** (600×800, Kindle 4 non-touch). There are various things you can do at this point—change fonts, link the files in different ways, etc.
 * If you prefer to generate images without the author and title in them, you can change the line that says "include_metadata" to "False". These will be saved to /images/nometadata/ by default.
 * You'll need to have Python and the Pillow module installed - `pip3 install pillow`. Installing Python is OS dependent but otherwise very straightfoward.
 * The end result is you should have a folder containing 2,300+ images. This folder can be copied into the timelit folder so they run like .../timelit/images/.
@@ -44,7 +46,7 @@ Start and stop the clock by running `./startstopClock.sh` (or via a KUAL menu it
 * **Jailbreak the Kindle** Connect the Kindle to USB, extract and copy over the jailbreak install file (directly to the root of the visible USB storage section, not into any folders) for the correct Kindle model. Disconnect from USB, Menu → Settings → Menu → Update. When you reconnect to USB it will now have a linkjail folder. Find your code for the jailbreak files here: https://wiki.mobileread.com/wiki/Kindle_Serial_Numbers
 * **Install Launchpad** (optional in this fork) Same as before, copy over the appropriate launchpad files, update, restart. It will now have a launchpad folder. You can start/stop the clock without Launchpad by running `startstopClock.sh` (e.g. via SSH or KUAL).
 * **Install usbNetwork** Same as before, copy over the appropriate usbnetwork files, update, restart. It will now have a usbnet folder.
-* **Install Python** Same as before, copy over the appropriate python files, update, restart. It will now have a python folder. The scripts in this fork use `python3`.
+* **Install Python** (optional on the Kindle for this fork) Same as before, copy over the appropriate python files if you want `python3` on device. **`timelit.sh` works without it** using `awk` for random image selection. Image generation on your computer still requires Python 3 + Pillow.
 
 
 ## **Step 3** - Install the scripts for this project
@@ -55,7 +57,11 @@ Start and stop the clock by running `./startstopClock.sh` (or via a KUAL menu it
 * If you use **Launchpad**, copy `startClock.ini` to `/mnt/us/launchpad/` (key combo for SSH and clock). Restart the Kindle so key combos are active.
 * If you use **KUAL**, copy the `extensions/literaryclock` folder to `/mnt/us/extensions/` so you have `/mnt/us/extensions/literaryclock/menu.json`. Restart KUAL or reboot your Kindle for the menu to appear. See `extensions/literaryclock/README.md` for details on checking your KUAL version.
 * Activate SSH over Wi‑Fi by editing the `config` file in `/mnt/us/usbnet/etc` and set “allow ssh over wifi” to true.
-* Make the scripts executable (e.g. over SSH): `chmod +x /mnt/us/timelit/timelit.sh /mnt/us/timelit/startstopClock.sh`
+* Make the scripts executable (e.g. over SSH); **FTP uploads often clear the execute bit**, so re-apply after copying:
+
+  `chmod +x /mnt/us/timelit/timelit.sh /mnt/us/timelit/startstopClock.sh /mnt/us/timelit/showMetadata.sh /mnt/us/timelit/showMetadataOLD.sh /mnt/us/timelit/version.sh`
+
+  (`startstopClock.sh` calls `showMetadata.sh` on start; on models without `waitforkey` it exits quietly.)
 
 ### Starting the clock and updating every minute
 
@@ -82,12 +88,12 @@ On some Kindles, `crontab` fails (e.g. `/var/spool/cron/crontabs` missing). You 
 1. On the Kindle (e.g. via SSH): `mkdir -p /mnt/us/timelit/cron /mnt/us/timelit/logs`
 2. Create the crontab file:  
    `echo '* * * * * /mnt/us/timelit/timelit.sh >>/mnt/us/timelit/logs/timelit-cron.log 2>&1' > /mnt/us/timelit/cron/root`
-3. Start the clock and crond:
-   - Start clock: `cd /mnt/us/timelit && ./startstopClock.sh`
-   - Start minute-updates: `crond -b -c /mnt/us/timelit/cron -L /mnt/us/timelit/logs/crond.log`
-4. To stop: run `./startstopClock.sh` again to exit clock mode; `killall crond` to stop the cron updates.
+3. Start the clock (this also starts `crond` when using the repo’s `startstopClock.sh`):  
+   `cd /mnt/us/timelit && ./startstopClock.sh`  
+   The script starts **`crond -b -c /mnt/us/timelit/cron`** and, on BusyBox builds that **reject `-L`**, falls back to **`crond` without `-L`** so minute updates still work. If you ever start cron by hand on an older Kindle and `crond` exits immediately, try **`crond -b -c /mnt/us/timelit/cron`** without **`-L`**.
+4. To stop: run `./startstopClock.sh` again to exit clock mode (this also stops `crond` in the repo script).
 
-* **Start/stop:** Run `./startstopClock.sh` once to start the clock (and, if you use Option B, start `crond` as above). Run `./startstopClock.sh` again to stop and return to the Kindle UI. On some models the menu bar may not reappear immediately — press the power button once if needed. See `timelit/readme.md` for stopping and timezone details.
+* **Start/stop:** Run `./startstopClock.sh` once to start the clock and minute updates. Run `./startstopClock.sh` again to stop and return to the Kindle UI. On some models the menu bar may not reappear immediately — press the power button once if needed. See `timelit/readme.md` for stopping and timezone details. Verify updates with `tail /mnt/us/timelit/logs/timelit-cron.log` (new lines each minute while the clock is on).
 * This project disables the metadata function so no buttons affect the clock while it’s running. Non-destructive: the Kindle can be used normally when the clock is stopped.
 
 ## Changes from the original repository
@@ -98,7 +104,10 @@ This fork ([elegantalchemist/literaryclock](https://github.com/elegantalchemist/
 |------|----------|-----------|
 | **Launchpad** | Required for Shift+C start/stop. | Optional. Start/stop via `./startstopClock.sh` (e.g. SSH or KUAL). |
 | **Cron** | System crontab: `mntroot rw`, edit `/etc/crontab/root`, install `clean-clock` in `/etc/init.d`. | Supports **Option B**: run `crond -c /mnt/us/timelit/cron` with crontab in `timelit/cron/root` — no root filesystem write. Handy when `crontab` fails (e.g. missing `/var/spool/cron/crontabs`). |
-| **Python** | Scripts call `python`. | Scripts call `python3` (Kindle typically has `python3` only). |
+| **Python (Kindle)** | Scripts call `python`. | Prefers `python3` when present; otherwise **`awk`** for random PNG choice—**no Kindle Python required**. |
+| **Image resolution** | Single layout in upstream. | **`DISPLAY_PROFILE`** in `quote_to_image.py`: `paperwhite2` (758×1024) or `kindle4` (600×800). |
+| **`showMetadata.sh`** | (varies) | **`showMetadata.sh` required** by `startstopClock.sh`; no-ops without `waitforkey` on non-keyboard models. |
+| **`crond -L`** | N/A | **`startstopClock.sh`** retries **`crond` without `-L`** if BusyBox rejects `-L` (fixes stuck first minute on some firmware). |
 | **Newer Kindles** | Assumes `/etc/init.d/powerd` and `/etc/init.d/framework` exist. | `startstopClock.sh` checks for these; if absent, restores UI via `lipc-set-prop` and full eips refresh to reduce ghosting. |
 | **Config loading** | Single MAC-named conf file. | `timelit.sh` tries, in order: `<mac-with-dashes>.conf`, `<mac-with-colons>.conf`, `default.conf`, and logs what was loaded. |
 | **Missing minute** | No image for current minute could cause script to exit or show nothing. | Fallback to placeholder images (`quote_9999_*.png`) when no image exists for the current minute; CSV includes placeholder quotes. |
